@@ -1,0 +1,48 @@
+{
+  "name": "gaming-timer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt-ts",
+    "build": "nuxt-ts build",
+    "start": "nuxt-ts start",
+    "generate": "nuxt-ts generate",
+    "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "lint": "npm run lint:js",
+    "fix": "run-s fix:eslint fix:prettier",
+    "fix:eslint": "yarn lint:eslint --fix",
+    "fix:prettier": "yarn lint:prettier --write",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@nuxt/content": "^1.11.1",
+    "@nuxt/typescript-runtime": "^2.0.0",
+    "@nuxtjs/axios": "^5.12.4",
+    "@nuxtjs/pwa": "^3.3.3",
+    "@types/jest": "^26.0.19",
+    "@types/pouchdb": "^6.4.0",
+    "core-js": "^3.8.1",
+    "element-ui": "^2.14.1",
+    "isclient": "^4.0.3",
+    "nuxt": "^2.14.12",
+    "pouchdb": "^7.2.2",
+    "pouchdb-adapter-memory": "^7.2.2",
+    "pouchdb-find": "^7.2.2"
+  },
+  "devDependencies": {
+    "@nuxt/types": "^2.14.12",
+    "@nuxt/typescript-build": "^2.0.3",
+    "@nuxtjs/eslint-config": "^5.0.0",
+    "@nuxtjs/eslint-config-typescript": "^5.0.0",
+    "@nuxtjs/eslint-module": "^3.0.2",
+    "@vue/test-utils": "^1.1.2",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-eslint": "^10.1.0",
+    "babel-jest": "^26.6.3",
+    "eslint": "^7.16.0",
+    "eslint-plugin-nuxt": "^2.0.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
+    "vue-jest": "^3.0.7"
+  }
+}
