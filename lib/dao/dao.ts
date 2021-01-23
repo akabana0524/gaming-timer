@@ -17,14 +17,14 @@ export class SoftDeletableEntity extends BaseEntity {
 export function createDao<T extends BaseEntity>(entityConstructor: { new(): T }, options: PouchDB.Configuration.DatabaseConfiguration = {}) {
   const className = entityConstructor.name;
   class Static {
-    db = new PouchDB(entityConstructor.name, options);
+    db = new PouchDB<T>(entityConstructor.name, options);
     async save(data: Partial<T>) {
       const now = new Date();
       if ('_id' in data) {
-        return await this.db.put({ ...data, $modifiedAt: now });
+        return await this.db.put({ ...data, $modifiedAt: now } as unknown as T);
       }
       else {
-        return await this.db.post({ ...data, $createdAt: now, $modifiedAt: now });
+        return await this.db.post({ ...data, $createdAt: now, $modifiedAt: now } as unknown as T);
       }
     }
     async delete(data: T, force?: boolean) {

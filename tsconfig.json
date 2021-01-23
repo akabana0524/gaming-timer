@@ -35,5 +35,7 @@
     "node_modules",
     ".nuxt",
     "dist"
-  ]
+  ],
+  "importHelpers": true,
+  "emitHelpers": true,
 }
