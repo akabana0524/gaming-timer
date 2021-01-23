@@ -1,19 +1,20 @@
 import { Module, VuexModule, Mutation, Action, MutationAction } from 'vuex-module-decorators'
 import { createDao, BaseEntity } from '~/lib/dao';
 
-export type TimerState = 'live' | 'ring' | 'stop';
+export type TimerState = 'play' | 'ring' | 'pause';
 
 export interface TimerData {
   id: string;
-  begin: Date;
   duration: number;
+  begin: number | null;
   name: string;
   state: TimerState;
+  left: number;
 }
 
 class TimerEntity extends BaseEntity {
-  begin!: Date;
   duration!: number;
+  begin!: number | null;
   name!: string;
   state!: TimerState;
 }
@@ -22,52 +23,28 @@ const dao = createDao(TimerEntity);
 
 @Module({ name: 'timer', stateFactory: true, namespaced: true })
 export default class TimerModule extends VuexModule {
+  static readonly INTERVAL = 16;
   _timerDatas: TimerData[] = [];
-  _timerMap: { [id: string]: NodeJS.Timeout } = {};
+  _globalTimer: NodeJS.Timeout | null = null;
 
   get timers() {
     return this._timerDatas;
   }
-  @Mutation
-  private timerProc(id: string) {
-    if (id in this._timerMap) {
-      clearInterval(this._timerMap[id]);
-      delete this._timerMap[id];
-    }
-    console.log('timerProc', { list: JSON.stringify(this._timerDatas) });
-    const timer = this._timerDatas.find(item => {
-      console.log('timerProc', { id, item }); return item && item.id === id
-    });
-    if (!timer) {
-      return;
-    }
-    switch (timer.state) {
-      case "live":
-        const left = new Date().getTime() - timer.begin.getTime() + timer.duration;
-        this._timerMap[timer.id] = setTimeout(() => {
-          console.log('timer ring!!!', { timer });
-          timer.state = 'ring';
-        }, left);
-        break;
-      case "stop":
-      case 'ring':
-        break;
-    }
-  }
 
   @Mutation
   private addTimer(timer: TimerData) {
+    console.log('addTimer');
     this._timerDatas.push(timer);
-    console.log('addTimer', { timer, list: this._timerDatas });
   }
 
   @Mutation
   private updateTimer(timer: TimerData) {
     const index = this._timerDatas.findIndex(item => item.id === timer.id);
     if (index >= 0) {
-      this._timerDatas[index] = timer;
+      Object.assign(this._timerDatas[index], timer);
     }
   }
+
   @Mutation
   private removeTimer(id: string) {
     console.log({ list: this._timerDatas });
@@ -77,6 +54,11 @@ export default class TimerModule extends VuexModule {
     }
   }
 
+  @Mutation
+  private setGlobalTimer(timer: NodeJS.Timeout | null) {
+    this._globalTimer = timer;
+  }
+
   @Action
   async load() {
     const result = await dao.getAll();
@@ -84,35 +66,117 @@ export default class TimerModule extends VuexModule {
     rows.forEach(row => {
       const entity = row.doc;
       if (entity) {
-        this.context.commit('addTimer', {
+        this.addTimer({
           id: entity._id,
           begin: entity.begin,
           duration: entity.duration,
           name: entity.name,
-          state: entity.state
+          state: entity.state,
+          left: entity.duration
         });
       }
     });
+    await this.updateGlobalTimer();
   }
 
   @Action
-  async add(request: Omit<TimerData, 'id'>) {
+  async add(request: Omit<TimerData, 'id' | 'left' | 'begin' | 'state'>) {
+    console.log('add');
     const savedEntity = await dao.save(request);
-    const timer: TimerData = { ...request, id: savedEntity.id };
-    this.context.commit('addTimer', timer);
-    this.timerProc(timer.id);
+    const timer: TimerData = { ...request, id: savedEntity.id, left: request.duration, begin: null, state: 'pause' };
+    this.addTimer(timer);
+    await this.updateGlobalTimer();
   }
+
   @Action
   async update(timer: TimerData) {
-    this.context.commit('updateTimer', timer);
-    this.timerProc(timer.id);
+    const _timer = this.timers.find(item => item.id === timer.id);
+    if (!_timer) {
+      throw new Error('timer not found:' + timer.id);
+    }
+    let change = false;
+    if (timer.state === 'play' && _timer.state === 'pause') {
+      timer.begin = new Date().getTime();
+      if (timer.left) {
+        timer.begin -= timer.duration - timer.left;
+      }
+      change = true;
+    }
+    if (timer.state === 'pause' && _timer.state === 'play') {
+      timer.begin = null;
+      change = true;
+    }
+    if (change) {
+      const entity = await dao.get(timer.id);
+      const savedEntity = await dao.save({ ...entity, ...timer });
+    }
+
+    this.updateTimer(timer);
+    await this.updateGlobalTimer();
   }
+
   @Action
   async remove(id: string) {
     console.log('remove', { list: JSON.stringify(this._timerDatas) });
     const entity = await dao.get(id);
     await dao.delete(entity);
-    this.context.commit('removeTimer', id);
-    this.timerProc(id);
+    this.removeTimer(id);
+    await this.updateGlobalTimer();
+  }
+
+  @Action
+  async play(id: string) {
+    const timer = this.timers.find(timer => timer.id === id);
+    if (timer) {
+      await this.update({ ...timer, state: 'play' });
+    }
+  }
+
+  @Action
+  async pause(id: string) {
+    const timer = this.timers.find(timer => timer.id === id);
+    if (timer) {
+      await this.update({ ...timer, state: 'pause' });
+    }
+  }
+
+  @Action
+  async reset(id: string) {
+    const timer = this.timers.find(timer => timer.id === id);
+    if (timer) {
+      await this.update({ ...timer, state: 'pause', left: timer.duration });
+    }
+  }
+
+  @Action
+  updateGlobalTimer() {
+    let active = this._timerDatas.findIndex(timer => timer.state === "play") !== -1;
+    if (active && !this._globalTimer) {
+      this.setGlobalTimer(setInterval((context) => context.dispatch('updateLeft'), TimerModule.INTERVAL, this.context));
+    }
+    if (!active && this._globalTimer) {
+      clearInterval(this._globalTimer);
+      this.setGlobalTimer(null);
+    }
+  }
+
+  @Action
+  updateLeft() {
+    console.log("updateLeft");
+    const now = new Date().getTime();
+    for (const timer of this._timerDatas) {
+      if (timer.state !== 'play') {
+        continue;
+      }
+      const begin = timer.begin || new Date().getTime();
+      const left = Math.max(begin + timer.duration - now, 0);
+      const state = left === 0 ? 'ring' : 'play';
+      this.update({
+        ...timer,
+        left,
+        state,
+        begin
+      });
+    }
   }
 }

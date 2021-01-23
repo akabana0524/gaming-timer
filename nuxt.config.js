@@ -20,12 +20,10 @@ export default {
 
   // Global CSS (https://go.nuxtjs.dev/config-css)
   css: [
-    'element-ui/lib/theme-chalk/index.css'
   ],
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
-    '@/plugins/element-ui'
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -35,7 +33,8 @@ export default {
   buildModules: [
     // https://go.nuxtjs.dev/typescript
     '@nuxt/typescript-build',
-    '@nuxtjs/pwa'
+    '@nuxtjs/pwa',
+    '@nuxtjs/vuetify',
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
@@ -57,7 +56,6 @@ export default {
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
     transpile: [
-      /^element-ui/,
       'vuex-module-decorators'
     ]
   },

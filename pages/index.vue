@@ -1,12 +1,23 @@
 <template>
-  <div class="container">
-    <el-button v-on:click="test()">test</el-button>
-    <div v-for="timer of timers" :key="timer.id">
-      <span>{{timer.id}}</span>:
-      <span>{{timer.name}}</span>
-      <el-button icon="close" v-on:click="remove(timer.id)"></el-button>
-    </div>
-  </div>
+  <v-app>
+    <v-container>
+      <v-row>
+        <v-btn v-on:click="test()">test</v-btn>
+      </v-row>
+      <v-row v-for="timer of timers" :key="timer.id">
+        <v-btn v-if="timer.state!=='play'" v-on:click="play(timer.id)">
+          <v-icon>mdi-play</v-icon>
+        </v-btn>
+        <v-btn v-if="timer.state==='play'" v-on:click="pause(timer.id)">
+          <v-icon>mdi-pause</v-icon>
+        </v-btn>
+        <v-btn v-on:click="remove(timer.id)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <span>{{JSON.stringify(timer)}}</span>
+      </v-row>
+    </v-container>
+  </v-app>
 </template>
 
 <script lang="ts">
@@ -29,15 +40,29 @@ export default Vue.extend({
   methods: {
     async test() {
       await timerStore.add({
-        begin: new Date(),
         duration: 10000,
-        name: "test",
-        state: "live"
+        name: "test"
       });
     },
     async remove(id: string) {
       console.log("delete", { id });
       await timerStore.remove(id);
+    },
+    async toggle(id: string) {
+      const timer = this.timers.find(item => item.id === id);
+      if (timer) {
+        if (timer.state === "pause") {
+          await timerStore.play(id);
+        } else {
+          await timerStore.pause(id);
+        }
+      }
+    },
+    async play(id: string) {
+      await timerStore.play(id);
+    },
+    async pause(id: string) {
+      await timerStore.pause(id);
     }
   }
 });
