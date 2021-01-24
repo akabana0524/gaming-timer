@@ -67,7 +67,7 @@ export default {
       name: 'My Awesome App',
       lang: 'fa',
       useWebmanifestExtension: false,
-      start_url: '/?standalone=true',
+      start_url: '/gaming-timer/?standalone=true',
       display: 'standalone'
     }
   }
