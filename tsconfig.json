@@ -27,7 +27,8 @@
       "@types/node",
       "@nuxt/types",
       "@types/pouchdb",
-      "@types/jest"
+      "@types/jest",
+      "./types/sound",
     ],
     "allowSyntheticDefaultImports": true
   },

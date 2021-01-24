@@ -1,5 +1,6 @@
 import { Module, VuexModule, Mutation, Action, MutationAction } from 'vuex-module-decorators'
 import { createDao, BaseEntity } from '~/lib/dao';
+import sound from '~/assets/sounds/se_maoudamashii_jingle03.mp3';
 
 export type TimerState = 'play' | 'ring' | 'pause';
 
@@ -26,6 +27,7 @@ export default class TimerModule extends VuexModule {
   static readonly INTERVAL = 16;
   _timerDatas: TimerData[] = [];
   _globalTimer: NodeJS.Timeout | null = null;
+  _jingle = new Audio(sound);
 
   get timers() {
     return this._timerDatas;
@@ -177,6 +179,9 @@ export default class TimerModule extends VuexModule {
         state,
         begin
       });
+      if (state === 'ring') {
+        this._jingle.play();
+      }
     }
   }
 }
