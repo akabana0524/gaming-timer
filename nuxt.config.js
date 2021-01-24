@@ -67,7 +67,7 @@ export default {
       name: 'My Awesome App',
       lang: 'fa',
       useWebmanifestExtension: false,
-      start_url: 'https://3000-db04a272-09f7-419b-a3ae-3b0eeeeaddb5.ws-us03.gitpod.io/?standalone=true',
+      start_url: '/?standalone=true',
       display: 'standalone'
     }
   }
