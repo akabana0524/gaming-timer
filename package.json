@@ -12,7 +12,8 @@
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
-    "test": "jest"
+    "test": "jest",
+    "deploy": "push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
     "@nuxt/content": "^1.11.1",
@@ -45,6 +46,7 @@
     "eslint": "^7.16.0",
     "eslint-plugin-nuxt": "^2.0.0",
     "jest": "^26.6.3",
+    "push-dir": "^0.4.1",
     "ts-jest": "^26.4.4",
     "vue-jest": "^3.0.7",
     "vuex-module-decorators": "^1.0.1"
