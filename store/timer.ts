@@ -29,6 +29,12 @@ export default class TimerModule extends VuexModule {
   _globalTimer: NodeJS.Timeout | null = null;
   _jingle = new Audio(sound);
 
+  @Action
+  initialize() {
+    console.log('TimerModule initialize');
+    this._jingle.volume = 0.1;
+  }
+
   get timers() {
     return this._timerDatas;
   }
@@ -36,6 +42,8 @@ export default class TimerModule extends VuexModule {
   @Mutation
   private addTimer(timer: TimerData) {
     console.log('addTimer');
+    this._jingle.muted = true;
+    this._jingle.play();
     this._timerDatas.push(timer);
   }
 
@@ -180,6 +188,7 @@ export default class TimerModule extends VuexModule {
         begin
       });
       if (state === 'ring') {
+        this._jingle.muted = false;
         this._jingle.play();
       }
     }

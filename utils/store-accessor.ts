@@ -6,6 +6,7 @@ import TimerModule from '~/store/timer'
 let timerStore: TimerModule
 function initialiseStores(store: Store<any>): void {
   timerStore = getModule(TimerModule, store);
+  timerStore.initialize();
 }
 
 export { initialiseStores, timerStore }

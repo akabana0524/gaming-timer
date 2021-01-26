@@ -1,4 +1,5 @@
 # gaming-timer
+https://akabana0524.github.io/gaming-timer/
 
 ## Build Setup
 
